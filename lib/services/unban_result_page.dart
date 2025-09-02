@@ -51,24 +51,32 @@ class UnbanResultPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D0D),
       appBar: AppBar(
-        title: const Text("Unban Reports"),
-        backgroundColor: Colors.green.shade900,
+        title: const Text(
+          "Unban Reports",
+          style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.1),
+        ),
+        centerTitle: true,
+        backgroundColor: Colors.green.shade800,
+        elevation: 6,
       ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: reports.length,
         itemBuilder: (context, index) {
           return Card(
-            color: Colors.green.shade900.withOpacity(0.3),
+            elevation: 4,
+            shadowColor: Colors.greenAccent.withOpacity(0.5),
+            color: Colors.black.withOpacity(0.25),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: BorderSide(color: Colors.greenAccent, width: 2),
+              borderRadius: BorderRadius.circular(18),
+              side: BorderSide(
+                color: Colors.greenAccent.withOpacity(0.7),
+                width: 1.6,
+              ),
             ),
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            child: Container(
-              padding: const EdgeInsets.all(24),
-              // Make card height adaptive to text content
-              constraints: const BoxConstraints(minHeight: 180),
+            margin: const EdgeInsets.symmetric(vertical: 10),
+            child: Padding(
+              padding: const EdgeInsets.all(22),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -76,28 +84,36 @@ class UnbanResultPage extends StatelessWidget {
                     reports[index],
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 20,
+                      fontSize: 18,
                       height: 1.5,
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   Align(
                     alignment: Alignment.bottomRight,
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.copy,
-                        color: Colors.greenAccent,
-                        size: 32,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.greenAccent.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      onPressed: () {
-                        Clipboard.setData(ClipboardData(text: reports[index]));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Message copied to clipboard!"),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      },
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.copy,
+                          color: Colors.greenAccent,
+                          size: 28,
+                        ),
+                        onPressed: () {
+                          Clipboard.setData(
+                            ClipboardData(text: reports[index]),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Message copied to clipboard!"),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
                 ],

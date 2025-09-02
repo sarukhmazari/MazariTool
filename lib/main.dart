@@ -1,5 +1,3 @@
-import 'dart:math';
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'next_page.dart';
 
@@ -17,158 +15,118 @@ class MazariToolApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        scaffoldBackgroundColor: Colors.black,
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(
+            fontSize: 48,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+          bodyLarge: TextStyle(fontSize: 18, color: Colors.white70),
+        ),
       ),
       home: const HomeScreen(),
     );
   }
 }
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 5),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Background image
-          Image.asset('assets/images/bg.jpg', fit: BoxFit.cover),
-
-          // Dark overlay
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.black.withOpacity(0.6),
-                  Colors.black.withOpacity(0.2),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-            ),
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF232526), Color(0xFF0F2027)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-
-          // Content
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+        ),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'MAZARI TOOL',
-                style: TextStyle(
-                  fontSize: 48,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: 2,
-                  shadows: [
-                    Shadow(
-                      color: Colors.black87,
-                      offset: Offset(3, 3),
-                      blurRadius: 6,
-                    ),
+              ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [
+                    Color(0xFF00F5FF),
+                    Color(0xFFB400FF),
+                    Color(0xFFFF00E1),
                   ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ).createShader(bounds),
+                child: const Text(
+                  'MAZARI TOOL',
+                  style: TextStyle(
+                    fontSize: 48,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 2,
+                    color: Colors.white,
+                    shadows: [
+                      Shadow(blurRadius: 20, color: Color(0xFF00F5FF)),
+                      Shadow(blurRadius: 20, color: Color(0xFFB400FF)),
+                    ],
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 32),
+              const Text(
+                'All-in-one WhatsApp Tools & YouTube Downloader',
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 40),
-
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  final double rotation = _controller.value * 2 * pi;
-                  return ClipRRect(
-                    borderRadius: BorderRadius.circular(25),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
-                      child: Container(
-                        width: 220,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(25),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
-                            width: 1.5,
-                          ),
-                          gradient: SweepGradient(
-                            startAngle: 0,
-                            endAngle: 2 * pi,
-                            colors: const [
-                              Colors.orange,
-                              Colors.red,
-                              Colors.blue,
-                              Colors.purple,
-                              Colors.orange,
-                            ],
-                            stops: const [0.0, 0.25, 0.5, 0.75, 1.0],
-                            transform: GradientRotation(rotation),
-                          ),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const NextPage(),
-                                ),
-                              );
-                            },
-                            child: const Center(
-                              child: Text(
-                                'Get Started',
-                                style: TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                  letterSpacing: 1.2,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+              const SizedBox(height: 48),
+              SizedBox(
+                width: 220,
+                height: 60,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF00F5FF),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
                     ),
-                  );
-                },
+                    elevation: 8,
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const NextPage()),
+                    );
+                  },
+                  child: const Text(
+                    'Get Started',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ),
               ),
-
-              const SizedBox(height: 150),
+              const SizedBox(height: 120),
               const Text(
-                'This tool is provided by Mazari',
+                'This tool is provided by Mazari & Zoxer',
                 style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.white70,
+                  fontSize: 16,
+                  color: Colors.white38,
                   fontWeight: FontWeight.w500,
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'unban_tool_page.dart';
-import 'account_recovery_page.dart';
-import 'more_tools_page.dart';
-import 'help_page.dart' as help_page;
-import 'qr.dart'; // ✅ Import your QR code generator page
+import 'services/unban_tool_page.dart';
+import 'services/channel_unban_page.dart';
+import 'services/group_unban_page.dart';
+import 'services/help_page.dart';
 
 class NextPage extends StatelessWidget {
   const NextPage({super.key});
@@ -64,48 +63,41 @@ class NextPage extends StatelessWidget {
             const SizedBox(height: 40),
 
             // 1. Unban Tool
-            _buildGradientButton(
-              context,
-              "Unban Tool",
-              Icons.shield,
-              const UnbanToolPage(),
-            ),
+            _buildGradientButton(context, "Unban Tool", Icons.build, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const UnbanToolPage()),
+              );
+            }),
             const SizedBox(height: 20),
 
-            // 2. QR Code Generator
-            _buildGradientButton(
-              context,
-              "QR Code Generator",
-              Icons.qr_code_2,
-              const QrPage(), // Page from qr.dart
-            ),
+            // 2. Channel Unban
+            _buildGradientButton(context, "Channel Unban", Icons.group, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ChannelUnbanPage(),
+                ),
+              );
+            }),
             const SizedBox(height: 20),
 
-            // 3. Account Recovery
-            _buildGradientButton(
-              context,
-              "Account Recovery",
-              Icons.account_circle,
-              const AccountRecoveryPage(),
-            ),
+            // 3. Group Unban
+            _buildGradientButton(context, "Group Unban", Icons.group_add, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const GroupUnbanPage()),
+              );
+            }),
             const SizedBox(height: 20),
 
-            // 4. More Tools
-            _buildGradientButton(
-              context,
-              "More Tools",
-              Icons.build,
-              const MoreToolsPage(),
-            ),
-            const SizedBox(height: 20),
-
-            // 5. Help
-            _buildGradientButton(
-              context,
-              "Help",
-              Icons.help,
-              const help_page.HelpPage(),
-            ),
+            // 4. Help Page
+            _buildGradientButton(context, "Help", Icons.help, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HelpPage()),
+              );
+            }),
           ],
         ),
       ),
@@ -116,59 +108,34 @@ class NextPage extends StatelessWidget {
     BuildContext context,
     String text,
     IconData icon,
-    Widget page,
+    VoidCallback onTap,
   ) {
-    return SizedBox(
-      width: double.infinity,
-      height: 75,
-      child: DecoratedBox(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 56,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [
-              Color(0xFF00F5FF), // Neon Cyan
-              Color(0xFFB400FF), // Neon Purple
-            ],
+            colors: [Color(0xFF00F5FF), Color(0xFFB400FF)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
-            BoxShadow(
-              color: Colors.black54,
-              blurRadius: 8,
-              offset: Offset(2, 4),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 10),
+            Text(
+              text,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
-        ),
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => page),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 28, color: Colors.white),
-              const SizedBox(width: 12),
-              Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

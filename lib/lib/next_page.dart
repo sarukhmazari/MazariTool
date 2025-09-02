@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'unban_tool_page.dart';
 import 'account_recovery_page.dart';
-import 'more_tools_page.dart';
+
 import 'help_page.dart' as help_page;
 import 'qr.dart'; // ✅ Import your QR code generator page
 
@@ -90,14 +90,7 @@ class NextPage extends StatelessWidget {
             ),
             const SizedBox(height: 20),
 
-            // 4. More Tools
-            _buildGradientButton(
-              context,
-              "More Tools",
-              Icons.build,
-              const MoreToolsPage(),
-            ),
-            const SizedBox(height: 20),
+            
 
             // 5. Help
             _buildGradientButton(
