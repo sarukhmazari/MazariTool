@@ -1,10 +1,13 @@
 ﻿// fakess.dart
 
+import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:screenshot/screenshot.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:path_provider/path_provider.dart';
 
 class FakessPage extends StatefulWidget {
   const FakessPage({super.key});
@@ -297,6 +300,46 @@ class _ReceiptPageState extends State<ReceiptPage> {
     return '*' * (number.length - 4) + number.substring(number.length - 4);
   }
 
+  Future<void> _saveReceipt() async {
+    // Ask permission
+    var status = await Permission.storage.request();
+    if (!status.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Storage permission denied")),
+      );
+      return;
+    }
+
+    // Capture
+    final image = await screenshotController.capture();
+    if (image == null) return;
+
+    // Directory
+    Directory? directory;
+    if (Platform.isAndroid) {
+      directory = Directory('/storage/emulated/0/Download');
+      if (!await directory.exists()) {
+        directory = await getExternalStorageDirectory();
+      }
+    } else {
+      directory = await getApplicationDocumentsDirectory();
+    }
+
+    // File name
+    String fileName =
+        "receipt_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.png";
+    final filePath = "${directory!.path}/$fileName";
+
+    // Save
+    final file = File(filePath);
+    await file.writeAsBytes(image);
+
+    // Notify
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text("Receipt saved to $filePath")));
+  }
+
   @override
   Widget build(BuildContext context) {
     final darkBlackSilver = Colors.grey[850];
@@ -309,241 +352,267 @@ class _ReceiptPageState extends State<ReceiptPage> {
       ),
       body: Center(
         child: SingleChildScrollView(
-          child: Container(
-            width: double.infinity,
-            constraints: const BoxConstraints(maxWidth: 320),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color.fromRGBO(11, 15, 24, 0.25),
-                  blurRadius: 15,
-                  offset: const Offset(0, 6),
+          child: Column(
+            children: [
+              Container(
+                width: double.infinity,
+                constraints: const BoxConstraints(maxWidth: 320),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromRGBO(11, 15, 24, 0.25),
+                      blurRadius: 15,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Screenshot(
-              controller: screenshotController,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 20,
-                      horizontal: 16,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "Transaction Successful",
-                          style: GoogleFonts.inter(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF1F2937),
-                          ),
-                          textAlign: TextAlign.center,
+                child: Screenshot(
+                  controller: screenshotController,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 20,
+                          horizontal: 16,
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          "TID: ${widget.tid}",
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        Text(
-                          widget.dateTime,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            color: Colors.grey[700],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 20),
-
-                        // Amount
-                        Text.rich(
-                          TextSpan(
-                            children: [
-                              TextSpan(
-                                text:
-                                    "Rs. ${widget.amount.contains('.') ? widget.amount.split('.').first : widget.amount}",
-                                style: GoogleFonts.inter(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              TextSpan(
-                                text: widget.amount.contains('.')
-                                    ? ".${widget.amount.split('.').last}"
-                                    : ".00",
-                                style: GoogleFonts.inter(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                              ),
-                            ],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "Transferred via RAAST",
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        const Divider(color: Color(0xFFE5E7EB)),
-
-                        // Fee
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text("Fee", style: GoogleFonts.inter(fontSize: 12)),
                             Text(
-                              "Rs. ${widget.fee.isEmpty ? '0.00' : widget.fee}",
+                              "Transaction Successful",
                               style: GoogleFonts.inter(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: const Color(0xFF1F2937),
                               ),
+                              textAlign: TextAlign.center,
                             ),
-                          ],
-                        ),
-                        const Divider(color: Color(0xFFE5E7EB)),
-
-                        // To Section
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                            const SizedBox(height: 6),
                             Text(
-                              "To",
+                              "TID: ${widget.tid}",
                               style: GoogleFonts.inter(
                                 fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            Text(
+                              widget.dateTime,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: Colors.grey[700],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 20),
+
+                            // Amount
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        "Rs. ${widget.amount.contains('.') ? widget.amount.split('.').first : widget.amount}",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: widget.amount.contains('.')
+                                        ? ".${widget.amount.split('.').last}"
+                                        : ".00",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Transferred via RAAST",
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
                                 color: Colors.grey[500],
                               ),
                             ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                            const SizedBox(height: 20),
+                            const Divider(color: Color(0xFFE5E7EB)),
+
+                            // Fee
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  widget.toName,
+                                  "Fee",
+                                  style: GoogleFonts.inter(fontSize: 12),
+                                ),
+                                Text(
+                                  "Rs. ${widget.fee.isEmpty ? '0.00' : widget.fee}",
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: darkBlackSilver,
+                                    color: Colors.black,
                                   ),
                                 ),
+                              ],
+                            ),
+                            const Divider(color: Color(0xFFE5E7EB)),
+
+                            // To Section
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  _maskPhoneNumber(widget.toNumber),
+                                  "To",
                                   style: GoogleFonts.inter(
                                     fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: darkBlackSilver,
+                                    color: Colors.grey[500],
                                   ),
                                 ),
-                                const SizedBox(height: 2),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      widget.toName,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: darkBlackSilver,
+                                      ),
+                                    ),
+                                    Text(
+                                      _maskPhoneNumber(widget.toNumber),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: darkBlackSilver,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      widget.toNote,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        color: darkBlackSilver,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            const Divider(color: Color(0xFFE5E7EB)),
+
+                            // From Section
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                                 Text(
-                                  widget.toNote,
+                                  "From",
                                   style: GoogleFonts.inter(
-                                    fontSize: 10,
-                                    color: darkBlackSilver,
+                                    fontSize: 12,
+                                    color: Colors.grey[500],
                                   ),
+                                ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Text(
+                                      widget.fromName,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: darkBlackSilver,
+                                      ),
+                                    ),
+                                    Text(
+                                      widget.fromNumber,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: darkBlackSilver,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
                           ],
                         ),
-                        const Divider(color: Color(0xFFE5E7EB)),
-
-                        // From Section
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "From",
-                              style: GoogleFonts.inter(
-                                fontSize: 12,
-                                color: Colors.grey[500],
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  widget.fromName,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: darkBlackSilver,
-                                  ),
-                                ),
-                                Text(
-                                  widget.fromNumber,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: darkBlackSilver,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-
-                  // Footer
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 10,
-                      horizontal: 16,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: const BorderRadius.vertical(
-                        bottom: Radius.circular(12),
                       ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          "Securely paid via",
-                          style: GoogleFonts.inter(
-                            fontSize: 10,
-                            color: Colors.grey[700],
+                      const SizedBox(height: 10),
+
+                      // Footer
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: const BorderRadius.vertical(
+                            bottom: Radius.circular(12),
                           ),
                         ),
-                        const SizedBox(width: 6),
-                        SizedBox(
-                          height: 28,
-                          child: Image.asset(
-                            "assets/images/jazzcash.png",
-                            fit: BoxFit.contain,
-                          ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Securely paid via",
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                color: Colors.grey[700],
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            SizedBox(
+                              height: 28,
+                              child: Image.asset(
+                                "assets/images/jazzcash.png",
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
+
+              const SizedBox(height: 20),
+
+              // Download button
+              ElevatedButton.icon(
+                onPressed: _saveReceipt,
+                icon: const Icon(Icons.download),
+                label: const Text("Download Receipt"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
