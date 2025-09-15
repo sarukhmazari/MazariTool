@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'group_result_page.dart';
 
 class GroupUnbanPage extends StatefulWidget {
   const GroupUnbanPage({super.key});
@@ -9,223 +11,300 @@ class GroupUnbanPage extends StatefulWidget {
 }
 
 class _GroupUnbanPageState extends State<GroupUnbanPage> {
-  final TextEditingController groupNameController = TextEditingController();
-  String? selectedGroupType;
-  DateTime? selectedDate;
+  final _formKey = GlobalKey<FormState>();
+  String? _groupType;
+  final TextEditingController _groupNameController = TextEditingController();
+  final TextEditingController _whatsappNumberController =
+      TextEditingController();
+  DateTime? _selectedDate;
 
-  final List<String> groupTypes = [
-    "Entertainment",
-    "Hacking",
-    "Vlogging",
-    "Education",
-    "Gaming",
+  final List<String> _groupCategories = [
+    "Study",
     "Business",
+    "Friends",
+    "Family",
+    "Sports",
+    "Travel",
+    "Technology",
+    "Gaming",
+    "Health & Fitness",
+    "Music",
+    "Movies & Entertainment",
+    "Education",
+    "News & Media",
+    "Shopping & Deals",
+    "Food & Recipes",
+    "Religion & Spiritual",
+    "Community Support",
+    "Jobs & Careers",
+    "Events & Meetups",
+    "Hobbies",
     "Other",
   ];
 
-  // Store today dynamically
-  DateTime get today => DateTime.now();
+  void _pickDate() async {
+    DateTime now = DateTime.now();
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: now,
+      firstDate: DateTime(2020),
+      lastDate: now,
+      builder: (context, child) {
+        return Theme(
+          data: ThemeData.dark().copyWith(
+            colorScheme: ColorScheme.dark(
+              primary: const Color(0xFF2196F3), // Accent blue
+              onPrimary: Colors.white,
+              surface: const Color(0xFF2E2E2E), // Card background color
+              onSurface: Colors.white,
+            ),
+            dialogTheme: DialogThemeData(
+              backgroundColor: const Color(
+                0xFF1E1E1E,
+              ), // Overall background color
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  void _validateAndProceed() {
+    if (_formKey.currentState!.validate()) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => GroupResultPage(
+            groupType: _groupType!,
+            groupName: _groupNameController.text,
+            whatsappNumber: _whatsappNumberController.text,
+            selectedDate: _selectedDate!,
+          ),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = const Color(0xFF2196F3);
+    final Color accentColor = const Color(0xFF42A5F5);
+    final Color inputFillColor = const Color(0xFF2E2E2E);
+    final Color inputBorderColor = const Color(0xFF424242);
+    final Color inputTextColor = Colors.white;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F2027),
+      backgroundColor: const Color(0xFF1E1E1E),
       appBar: AppBar(
-        title: const Text("Group Unban"),
+        title: Text(
+          "Group Unban Form",
+          style: GoogleFonts.lato(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.5,
+          ),
+        ),
+        backgroundColor: const Color(0xFF1E1E1E),
         centerTitle: true,
-        backgroundColor: Colors.green.shade700,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Group Type
-            const Text(
-              "Select Group Type",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Dropdown
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white54, width: 1.2),
-              ),
-              child: DropdownButtonFormField<String>(
-                value: selectedGroupType,
-                dropdownColor: Colors.black87,
-                iconEnabledColor: Colors.white,
-                items: groupTypes.map((type) {
-                  return DropdownMenuItem<String>(
-                    value: type,
-                    child: Text(
-                      type,
-                      style: const TextStyle(color: Colors.white),
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildLabel("Group Category", Colors.white),
+                const SizedBox(height: 10),
+                DropdownButtonFormField<String>(
+                  value: _groupType,
+                  dropdownColor: inputFillColor,
+                  style: TextStyle(color: inputTextColor),
+                  decoration: _inputDecoration(
+                    "Select Group Category",
+                    Icons.category_outlined,
+                    primaryColor,
+                    inputFillColor,
+                    inputBorderColor,
+                  ),
+                  items: _groupCategories
+                      .map(
+                        (type) => DropdownMenuItem(
+                          value: type,
+                          child: Text(
+                            type,
+                            style: GoogleFonts.lato(color: inputTextColor),
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _groupType = value;
+                    });
+                  },
+                  validator: (value) =>
+                      value == null ? "Please select a group category" : null,
+                ),
+                const SizedBox(height: 25),
+                _buildLabel("Group Name", Colors.white),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _groupNameController,
+                  style: GoogleFonts.lato(color: inputTextColor),
+                  decoration: _inputDecoration(
+                    "Enter Group Name",
+                    Icons.group_outlined,
+                    primaryColor,
+                    inputFillColor,
+                    inputBorderColor,
+                  ),
+                  validator: (value) =>
+                      value!.isEmpty ? "Please enter group name" : null,
+                ),
+                const SizedBox(height: 25),
+                _buildLabel("Your WhatsApp Number", Colors.white),
+                const SizedBox(height: 10),
+                TextFormField(
+                  controller: _whatsappNumberController,
+                  keyboardType: TextInputType.phone,
+                  style: GoogleFonts.lato(color: inputTextColor),
+                  decoration: _inputDecoration(
+                    "Enter Your WhatsApp Number",
+                    Icons.phone_android_outlined,
+                    primaryColor,
+                    inputFillColor,
+                    inputBorderColor,
+                  ),
+                  validator: (value) => value!.isEmpty
+                      ? "Please enter your WhatsApp number"
+                      : null,
+                ),
+                const SizedBox(height: 25),
+                _buildLabel("Ban Date", Colors.white),
+                const SizedBox(height: 10),
+                InkWell(
+                  onTap: _pickDate,
+                  child: InputDecorator(
+                    decoration: _inputDecoration(
+                      "Select Date",
+                      Icons.calendar_today_outlined,
+                      primaryColor,
+                      inputFillColor,
+                      inputBorderColor,
                     ),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedGroupType = value;
-                  });
-                },
-                decoration: const InputDecoration(border: InputBorder.none),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // Group Name
-            const Text(
-              "Enter Group Name",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // TextField
-            TextField(
-              controller: groupNameController,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                hintText: "Type your group name",
-                hintStyle: const TextStyle(color: Colors.white54),
-                filled: true,
-                fillColor: Colors.white.withOpacity(0.05),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(
-                    color: Colors.white54,
-                    width: 1.2,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: const BorderSide(color: Colors.green, width: 1.5),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 30),
-
-            // Calendar Title
-            const Text(
-              "Select Ban Date",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 12),
-
-            // Calendar
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white54, width: 1.2),
-              ),
-              child: TableCalendar(
-                firstDay: DateTime.utc(2000, 1, 1),
-                lastDay: today, // ⬅ Only allow today or before
-                focusedDay: selectedDate ?? today,
-                selectedDayPredicate: (day) {
-                  return selectedDate != null &&
-                      day.year == selectedDate!.year &&
-                      day.month == selectedDate!.month &&
-                      day.day == selectedDate!.day;
-                },
-                onDaySelected: (selectedDay, focusedDay) {
-                  if (selectedDay.isAfter(today)) return; // Block future
-                  setState(() {
-                    selectedDate = selectedDay;
-                  });
-                },
-                calendarStyle: const CalendarStyle(
-                  todayDecoration: BoxDecoration(
-                    color: Colors.transparent, // ⬅ Remove circle from today
-                    shape: BoxShape.circle,
-                  ),
-                  todayTextStyle: TextStyle(color: Colors.white),
-                  selectedDecoration: BoxDecoration(
-                    color: Colors.green,
-                    shape: BoxShape.circle,
-                  ),
-                  selectedTextStyle: TextStyle(color: Colors.white),
-                  weekendTextStyle: TextStyle(color: Colors.redAccent),
-                  defaultTextStyle: TextStyle(color: Colors.white),
-                ),
-                headerStyle: const HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                  titleTextStyle: TextStyle(color: Colors.white),
-                  leftChevronIcon: Icon(
-                    Icons.chevron_left,
-                    color: Colors.white,
-                  ),
-                  rightChevronIcon: Icon(
-                    Icons.chevron_right,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-
-            const Spacer(),
-
-            // Next Button
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green.shade700,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () {
-                  if (selectedGroupType == null ||
-                      groupNameController.text.isEmpty ||
-                      selectedDate == null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          "⚠ Please fill all fields and select a date",
-                        ),
+                    child: Text(
+                      _selectedDate == null
+                          ? "Select Date"
+                          : DateFormat("dd-MM-yyyy").format(_selectedDate!),
+                      style: GoogleFonts.lato(
+                        color: _selectedDate == null
+                            ? Colors.grey
+                            : inputTextColor,
+                        fontSize: 16,
                       ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          "✅ Type: $selectedGroupType\nName: ${groupNameController.text}\nDate: ${selectedDate!.toLocal()}",
-                        ),
-                      ),
-                    );
-                  }
-                },
-                child: const Text(
-                  "Next",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 40),
+                Container(
+                  width: double.infinity,
+                  height: 55,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primaryColor.withOpacity(0.3),
+                        spreadRadius: 2,
+                        blurRadius: 10,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
+                    gradient: LinearGradient(
+                      colors: [primaryColor, accentColor],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                  ),
+                  child: ElevatedButton(
+                    onPressed: _validateAndProceed,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    child: Text(
+                      "Next",
+                      style: GoogleFonts.lato(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildLabel(String text, Color color) {
+    return Text(
+      text,
+      style: GoogleFonts.lato(
+        fontSize: 18,
+        fontWeight: FontWeight.w600,
+        color: color,
+      ),
+    );
+  }
+
+  InputDecoration _inputDecoration(
+    String hintText,
+    IconData icon,
+    Color primaryColor,
+    Color fillColor,
+    Color borderColor,
+  ) {
+    return InputDecoration(
+      hintText: hintText,
+      hintStyle: GoogleFonts.lato(color: Colors.grey.shade600),
+      prefixIcon: Icon(icon, color: Colors.grey.shade500),
+      filled: true,
+      fillColor: fillColor,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: primaryColor, width: 2),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: borderColor, width: 1),
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        vertical: 16.0,
+        horizontal: 16.0,
       ),
     );
   }
