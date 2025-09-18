@@ -88,12 +88,10 @@ class _ChannelUnbanPageState extends State<ChannelUnbanPage> {
       },
     );
 
-    if (picked != null) {
-      setState(() {
-        _selectedDay = picked;
-        _focusedDay = picked;
-      });
-    }
+    setState(() {
+      _selectedDay = picked;
+      _focusedDay = picked ?? _focusedDay;
+    });
   }
 
   @override

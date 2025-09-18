@@ -325,10 +325,17 @@ class _ReceiptPageState extends State<ReceiptPage> {
       directory = await getApplicationDocumentsDirectory();
     }
 
+    if (directory == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Unable to resolve save directory")),
+      );
+      return;
+    }
+
     // File name
     String fileName =
         "receipt_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.png";
-    final filePath = "${directory!.path}/$fileName";
+    final filePath = "${directory.path}/$fileName";
 
     // Save
     final file = File(filePath);

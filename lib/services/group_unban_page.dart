@@ -72,12 +72,10 @@ class _GroupUnbanPageState extends State<GroupUnbanPage> {
       },
     );
 
-    if (picked != null) {
-      setState(() {
-        _selectedDate = picked;
-      });
+    setState(() {
+      _selectedDate = picked;
+    });
     }
-  }
 
   void _validateAndProceed() {
     if (_formKey.currentState!.validate()) {
