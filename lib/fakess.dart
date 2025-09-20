@@ -1,13 +1,11 @@
-﻿// fakess.dart
-
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:screenshot/screenshot.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:screenshot/screenshot.dart';
 
 class FakessPage extends StatefulWidget {
   const FakessPage({super.key});
@@ -300,51 +298,76 @@ class _ReceiptPageState extends State<ReceiptPage> {
     return '*' * (number.length - 4) + number.substring(number.length - 4);
   }
 
+  // --- MODIFIED FUNCTION ---
   Future<void> _saveReceipt() async {
-    // Ask permission
-    var status = await Permission.storage.request();
+    // 1. Request the correct, modern permission for saving photos
+    var status = await Permission.photos.request();
     if (!status.isGranted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Storage permission denied")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Permission denied. Cannot save receipt."),
+          ),
+        );
+      }
       return;
     }
 
-    // Capture
+    // 2. Capture the screenshot
     final image = await screenshotController.capture();
-    if (image == null) return;
-
-    // Directory
-    Directory? directory;
-    if (Platform.isAndroid) {
-      directory = Directory('/storage/emulated/0/Download');
-      if (!await directory.exists()) {
-        directory = await getExternalStorageDirectory();
+    if (image == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to capture receipt image.")),
+        );
       }
-    } else {
-      directory = await getApplicationDocumentsDirectory();
+      return;
+    }
+
+    // 3. Find a reliable directory to save the file
+    Directory? directory;
+    try {
+      if (Platform.isAndroid) {
+        // Use the public downloads directory
+        directory = Directory('/storage/emulated/0/Download');
+        // Create it if it doesn't exist
+        if (!await directory.exists()) {
+          directory = await getExternalStorageDirectory();
+        }
+      } else {
+        directory = await getApplicationDocumentsDirectory();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Failed to find save directory.")),
+        );
+      }
+      return;
     }
 
     if (directory == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Unable to resolve save directory")),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Could not resolve save directory.")),
+        );
+      }
       return;
     }
 
-    // File name
-    String fileName =
+    // 4. Save the file
+    final fileName =
         "receipt_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.png";
     final filePath = "${directory.path}/$fileName";
-
-    // Save
     final file = File(filePath);
     await file.writeAsBytes(image);
 
-    // Notify
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text("Receipt saved to $filePath")));
+    // 5. Notify the user of success
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Receipt saved in Downloads folder")),
+      );
+    }
   }
 
   @override

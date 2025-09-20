@@ -24,6 +24,7 @@ class NextPage extends StatelessWidget {
   }
 
   // Helper function to open WhatsApp chat
+  // ignore: unused_element
   void _launchWhatsAppChat(BuildContext context, String phone) async {
     final String url =
         'https://wa.me/$phone?text=${Uri.encodeComponent("Hello, I need help with Mazari Tool.")}';
